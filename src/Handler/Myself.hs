@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Handler.Myself 
-    ( myselfAPI
+    ( MyselfAPI
     , myselfServer
     ) where
 
@@ -11,13 +11,10 @@ import Theseus.User (User(..))
 import Servant (Get, JSON, Server, Proxy(..), Header, (:>), err400, errBody, throwError)
 
 type MyselfAPI = "myself"
-             :> Header "username" String
-             :> Header "email" String
-             :> Header "avatar" String
-             :> Get '[JSON] User
-
-myselfAPI :: Proxy MyselfAPI
-myselfAPI = Proxy
+              :> Header "name" String
+              :> Header "email" String
+              :> Header "avatar" String
+              :> Get '[JSON] User
 
 myselfServer :: Server MyselfAPI
 myselfServer maybeName maybeEmail maybeAvatar = case maybeUser of

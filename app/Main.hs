@@ -1,12 +1,23 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Main (main) where
 
 import Data.String (fromString)
-import Servant (Application, serve)
-import Handler.Myself (myselfAPI, myselfServer)
+import Handler.Myself (MyselfAPI, myselfServer)
+import Handler.Deployments (DeploymentsAPI, deploymentsServer)
 import Network.Wai.Handler.Warp (setHost, setPort, runSettings, defaultSettings)
+import Servant (Application, Server(..), Proxy(Proxy), serve, (:<|>)((:<|>)))
+
+type TheseusAPI = MyselfAPI
+             :<|> DeploymentsAPI
+
+server :: Server TheseusAPI
+server = myselfServer
+    :<|> deploymentsServer
 
 app :: Application
-app = serve myselfAPI myselfServer
+app = serve (Proxy :: Proxy TheseusAPI) server
 
 main :: IO ()
 main = do

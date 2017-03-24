@@ -1,2 +1,8 @@
+{-# LANGUAGE LambdaCase #-}
+import Kubernetes.Deployments
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+    getDeploymentsOf "theseus-online" >>= \case
+        Right x -> print x
+        Left y -> print y
