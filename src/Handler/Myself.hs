@@ -7,7 +7,7 @@ module Handler.Myself
     , myselfServer
     ) where
 
-import Theseus.User (User(..))
+import Model.Users (User(..))
 import Servant (Get, JSON, Server, Proxy(..), Header, (:>), err400, errBody, throwError)
 
 type MyselfAPI = "myself"

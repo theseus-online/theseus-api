@@ -9,7 +9,6 @@ module Handler.Deployments
     ) where
 
 import qualified Model.Deployments as M
-import Theseus.User (User(..))
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString.Lazy.Char8 (pack)
 import Servant (Get, JSON, Server, Proxy(..), Capture, (:>), err500, errBody, throwError)
