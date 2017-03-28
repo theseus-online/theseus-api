@@ -29,17 +29,17 @@ data Container = Container
 instance ToJSON Container
 
 fromKubeDeployment :: KD.Deployment -> Deployment
-fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns $ foldr foldContainers [] cs
-    where foldContainers (KD.Container nm im _) list = (Container nm im) : list
+fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns $ map fromKubeContainers cs
+    where fromKubeContainers (KD.Container nm im) = Container nm im
 
 getDeployments :: IO (Either String [Deployment])
 getDeployments =
     KD.getDeployments >>= \case
         Left msg -> return $ Left msg
-        Right deps -> return $ Right $ foldr (\dep list -> (fromKubeDeployment dep) : list) [] deps
+        Right deps -> return $ Right $ map (\dep -> fromKubeDeployment dep) deps
 
 getDeploymentsOf :: String -> IO (Either String [Deployment])
 getDeploymentsOf username =
     KD.getDeploymentsOf username >>= \case
         Left msg -> return $ Left msg
-        Right deps -> return $ Right $ foldr (\dep list -> (fromKubeDeployment dep) : list) [] deps
+        Right deps -> return $ Right $ map (\dep -> fromKubeDeployment dep) deps
