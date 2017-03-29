@@ -66,15 +66,21 @@ getDeploymentsOf username = do
 
 createDeployment :: Deployment -> IO (Either String ())
 createDeployment dep = do
-    let d = object [ "metadata" .= name (dep :: Deployment)-- deploymentMeta dep
-                   , "spec" .= object ["template" .= object ["spec" .= object ["containers" .= deploymentContainers dep]]]
+    let d = object [ "metadata" .= deploymentMeta dep
+                   , "spec" .= deploymentSpec dep
                    ]
     r <- post ((deploymentsOf . unpack . namespace) dep) d
     case r ^. responseStatus . statusCode of
-        200 -> return $ Right ()
-        c -> return $ Left $ "kubernetes not response with 200. code: " ++ show c ++ ". body: " ++ show (r ^. responseBody)
+        201 -> return $ Right ()
+        c -> return $ Left $ "kubernetes not response with 201. code: " ++ show c ++ ". body: " ++ show (r ^. responseBody)
 
     where deploymentMeta (Deployment nm ns _) = object [ "name" .= nm
                                                        , "namespace" .= ns
                                                        ]
-          deploymentContainers (Deployment _ _ cs) = map (\(Container n i) -> object ["name" .= n, "image" .= i]) cs
+
+          deploymentSpec (Deployment nm ns cs) = object
+                                               [ "template" .= object [ "metadata" .= object ["labels" .= object ["app" .= nm]]
+                                                                      , "spec" .= object ["containers" .= deploymentContainers cs]]
+                                               ]
+
+          deploymentContainers cs = map (\(Container n i) -> object ["name" .= n, "image" .= i]) cs
