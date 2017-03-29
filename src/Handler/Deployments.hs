@@ -8,19 +8,58 @@ module Handler.Deployments
     , deploymentsServer
     ) where
 
+import qualified Data.Text as T
+import Data.ByteString.Lazy.Char8 as L
 import qualified Model.Deployments as M
-import Control.Monad.IO.Class (liftIO)
-import Data.ByteString.Lazy.Char8 (pack)
-import Servant (Get, JSON, Server, Proxy(..), Capture, (:>), err500, errBody, throwError)
 
-type DeploymentsAPI = "users"
-                   :> Capture "username" String
-                   :> "deployments"
-                   :> Get '[JSON] [M.Deployment]
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Except (ExceptT)
+import Servant ( Get
+               , Post
+               , JSON
+               , Server
+               , Header
+               , Proxy(..)
+               , Capture
+               , ReqBody
+               , ServantErr
+               , PostCreated
+               , NoContent(NoContent)
+               , (:>)
+               , err403
+               , err500
+               , errBody
+               , throwError
+               , (:<|>)((:<|>))
+               )
+
+type DeploymentsAPI = "users" :> Capture "username" String 
+                              :> "deployments" 
+                              :> Get '[JSON] [M.Deployment]
+                 :<|> "users" :> Header "name" String 
+                              :> Capture "username" String 
+                              :> "deployments"
+                              :> ReqBody '[JSON] M.Deployment
+                              :> PostCreated '[JSON] NoContent
 
 deploymentsServer :: Server DeploymentsAPI
-deploymentsServer username = do
+deploymentsServer = getDeployments
+               :<|> createDeployment
+
+
+getDeployments :: String -> ExceptT ServantErr IO [M.Deployment]
+getDeployments username = do
     r <- liftIO $ M.getDeploymentsOf username
     case r of
         Right deps -> return deps
-        Left err -> throwError $ err500 { errBody = pack err }
+        Left err -> throwError $ err500 { errBody = L.pack err }
+
+createDeployment :: Maybe String -> String -> M.Deployment -> ExceptT ServantErr IO NoContent
+createDeployment mhUname pUname dep = do
+    let d = dep { M.owner = T.pack pUname }
+    case mhUname of
+        Just mhUname | mhUname == pUname -> (liftIO $ M.createDeployment d) >>= \case
+            Right _ -> return NoContent
+            Left err -> throwError $ err500 { errBody = L.pack err }
+        _ -> throwError err403
+    
