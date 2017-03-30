@@ -10,7 +10,6 @@ module Kubernetes.Deployments
     , Container(Container)
     ) where
 
-import Data.Text (Text, unpack)
 import GHC.Exts (fromList)
 import Network.Wreq (get, post, responseBody, responseStatus, statusCode)
 import Control.Lens ((^.), (^?), (^..))
@@ -25,8 +24,8 @@ instance FromJSON DeploymentResult where
         x -> fail $ "unexpected json: " ++ show x
 
 data Deployment = Deployment
-                { name :: Text
-                , namespace :: Text
+                { name :: String
+                , namespace :: String
                 , containers :: [Container]
                 } deriving (Show)
 
@@ -39,8 +38,8 @@ instance FromJSON Deployment where
         x -> fail $ "unexpected json: " ++ show x
 
 data Container = Container
-               { name :: Text
-               , image ::Text
+               { name :: String
+               , image ::String
                } deriving (Show)
 
 instance FromJSON Container where
@@ -69,7 +68,7 @@ createDeployment dep = do
     let d = object [ "metadata" .= deploymentMeta dep
                    , "spec" .= deploymentSpec dep
                    ]
-    r <- post ((deploymentsOf . unpack . namespace) dep) d
+    r <- post ((deploymentsOf . namespace) dep) d
     case r ^. responseStatus . statusCode of
         201 -> return $ Right ()
         c -> return $ Left $ "kubernetes not response with 201. code: " ++ show c ++ ". body: " ++ show (r ^. responseBody)

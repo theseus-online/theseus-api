@@ -8,7 +8,6 @@ module Handler.Deployments
     , deploymentsServer
     ) where
 
-import qualified Data.Text as T
 import Data.ByteString.Lazy.Char8 as L
 import qualified Model.Deployments as M
 
@@ -56,7 +55,7 @@ getDeployments username = do
 
 createDeployment :: Maybe String -> String -> M.Deployment -> ExceptT ServantErr IO NoContent
 createDeployment mhUname pUname dep = do
-    let d = dep { M.owner = T.pack pUname }
+    let d = dep { M.owner = pUname }
     case mhUname of
         Just mhUname | mhUname == pUname -> (liftIO $ M.createDeployment d) >>= \case
             Right _ -> return NoContent

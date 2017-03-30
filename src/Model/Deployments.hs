@@ -10,13 +10,12 @@ module Model.Deployments
     ) where
 
 import GHC.Generics (Generic)
-import Data.Text (Text)
 import qualified Kubernetes.Deployments as KD
 import Data.Aeson (ToJSON, FromJSON)
 
 data Deployment = Deployment
-                { name :: Text
-                , owner :: Text
+                { name :: String
+                , owner :: String
                 , containers :: [Container]
                 } deriving (Show, Generic)
 
@@ -24,8 +23,8 @@ instance ToJSON Deployment
 instance FromJSON Deployment
 
 data Container = Container
-               { name :: Text
-               , image :: Text
+               { name :: String
+               , image :: String
                } deriving (Show, Generic)
 
 instance ToJSON Container
