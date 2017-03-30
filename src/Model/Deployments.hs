@@ -6,6 +6,7 @@ module Model.Deployments
     ( getDeployments
     , getDeploymentsOf
     , createDeployment
+    , deleteDeployment
     , Deployment(..)
     ) where
 
@@ -52,3 +53,6 @@ getDeploymentsOf username =
 
 createDeployment :: Deployment -> IO (Either String ())
 createDeployment dep = KD.createDeployment $ toKubeDeployment dep
+
+deleteDeployment :: String -> String -> IO (Either String ())
+deleteDeployment = KD.deleteDeployment

@@ -1,6 +1,9 @@
 module Kubernetes.Settings
     ( deployments
+    , deploymentOf
     , deploymentsOf
+    , replicasetsOf
+    , podsOf
     ) where
 
 apiV1 :: String
@@ -13,4 +16,13 @@ deployments :: String
 deployments = apiExtensions ++ "/deployments"
 
 deploymentsOf :: String -> String
-deploymentsOf username = apiExtensions ++ "/namespaces/" ++ username ++ "/deployments"
+deploymentsOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/deployments"
+
+deploymentOf :: String -> String -> String
+deploymentOf namespace name = deploymentsOf namespace ++ "/" ++ name
+
+replicasetsOf :: String -> String
+replicasetsOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/replicasets"
+
+podsOf :: String -> String
+podsOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/pods"

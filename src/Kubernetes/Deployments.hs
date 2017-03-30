@@ -6,14 +6,16 @@ module Kubernetes.Deployments
     ( getDeployments
     , getDeploymentsOf
     , createDeployment
+    , deleteDeployment
     , Deployment(Deployment)
     , Container(Container)
     ) where
 
 import GHC.Exts (fromList)
-import Network.Wreq (get, post, responseBody, responseStatus, statusCode)
-import Control.Lens ((^.), (^?), (^..))
-import Kubernetes.Settings (deployments, deploymentsOf)
+import qualified Data.Text as T
+import Network.Wreq (get, post, delete, deleteWith, param, defaults, responseBody, responseStatus, statusCode)
+import Control.Lens ((&), (.~), (^.), (^?), (^..))
+import Kubernetes.Settings (deployments, deploymentOf, deploymentsOf, replicasetsOf, podsOf)
 import Data.Aeson ((.:), (.!=), (.:?), (.=), encode, decode, object, FromJSON(..), Value(..))
 
 data DeploymentResult = DeploymentResult [Deployment] deriving (Show)
@@ -68,10 +70,8 @@ createDeployment dep = do
     let d = object [ "metadata" .= deploymentMeta dep
                    , "spec" .= deploymentSpec dep
                    ]
-    r <- post ((deploymentsOf . namespace) dep) d
-    case r ^. responseStatus . statusCode of
-        201 -> return $ Right ()
-        c -> return $ Left $ "kubernetes not response with 201. code: " ++ show c ++ ". body: " ++ show (r ^. responseBody)
+    post ((deploymentsOf . namespace) dep) d
+    return $ Right ()
 
     where deploymentMeta (Deployment nm ns _) = object [ "name" .= nm
                                                        , "namespace" .= ns
@@ -83,3 +83,11 @@ createDeployment dep = do
                                                ]
 
           deploymentContainers cs = map (\(Container n i) -> object ["name" .= n, "image" .= i]) cs
+
+deleteDeployment :: String -> String -> IO (Either String ())
+deleteDeployment namespace name = do
+    let opts = defaults & param "labelSelector" .~ [T.pack $ "app=" ++ name]
+    delete $ deploymentOf namespace name
+    deleteWith opts $ replicasetsOf namespace
+    deleteWith opts $ podsOf namespace
+    return $ Right ()

@@ -23,6 +23,7 @@ import Servant ( Get
                , ReqBody
                , ServantErr
                , PostCreated
+               , DeleteNoContent
                , NoContent(NoContent)
                , (:>)
                , err403
@@ -40,10 +41,16 @@ type DeploymentsAPI = "users" :> Capture "username" String
                               :> "deployments"
                               :> ReqBody '[JSON] M.Deployment
                               :> PostCreated '[JSON] NoContent
+                 :<|> "users" :> Header "name" String
+                              :> Capture "username" String
+                              :> "deployments"
+                              :> Capture "deployment_name" String
+                              :> DeleteNoContent '[JSON] NoContent
 
 deploymentsServer :: Server DeploymentsAPI
 deploymentsServer = getDeployments
                :<|> createDeployment
+               :<|> deleteDeployment
 
 
 getDeployments :: String -> ExceptT ServantErr IO [M.Deployment]
@@ -57,8 +64,14 @@ createDeployment :: Maybe String -> String -> M.Deployment -> ExceptT ServantErr
 createDeployment mhUname pUname dep = do
     let d = dep { M.owner = pUname }
     case mhUname of
-        Just mhUname | mhUname == pUname -> (liftIO $ M.createDeployment d) >>= \case
+        Just hUname | hUname == pUname -> (liftIO $ M.createDeployment d) >>= \case
             Right _ -> return NoContent
             Left err -> throwError $ err500 { errBody = L.pack err }
         _ -> throwError err403
-    
+
+deleteDeployment :: Maybe String -> String -> String -> ExceptT ServantErr IO NoContent
+deleteDeployment mhUname pUname depName = case mhUname of
+    Just hUname | hUname == pUname -> (liftIO $ M.deleteDeployment pUname depName) >>= \case
+        Right _ -> return NoContent
+        Left err -> throwError $ err500 { errBody = L.pack err }
+    _ -> throwError err403
