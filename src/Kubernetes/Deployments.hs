@@ -59,8 +59,8 @@ getDeployments = do
         Nothing -> return $ Left $ "request kubernetes failed" ++ show (r ^. responseBody)
 
 getDeploymentsOf :: String -> IO (Either String [Deployment])
-getDeploymentsOf username = do
-    r <- get $ deploymentsOf username
+getDeploymentsOf namespace = do
+    r <- get $ deploymentsOf namespace
     case decode (r ^. responseBody) of
         Just (DeploymentResult deps) -> return $ Right deps
         Nothing -> return $ Left $ "request kubernetes failed" ++ show (r ^. responseBody)

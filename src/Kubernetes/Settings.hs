@@ -4,6 +4,8 @@ module Kubernetes.Settings
     , deploymentsOf
     , replicasetsOf
     , podsOf
+    , services
+    , servicesOf
     ) where
 
 apiV1 :: String
@@ -26,3 +28,9 @@ replicasetsOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/repl
 
 podsOf :: String -> String
 podsOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/pods"
+
+services :: String
+services = apiV1 ++ "/services"
+
+servicesOf :: String -> String
+servicesOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/services"

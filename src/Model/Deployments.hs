@@ -32,12 +32,12 @@ instance ToJSON Container
 instance FromJSON Container
 
 fromKubeDeployment :: KD.Deployment -> Deployment
-fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns $ map fromKubeContainers cs
-    where fromKubeContainers (KD.Container nm im) = Container nm im
+fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns $ map fromKubeContainer cs
+    where fromKubeContainer (KD.Container nm im) = Container nm im
 
 toKubeDeployment :: Deployment -> KD.Deployment
-toKubeDeployment (Deployment nm ns cs) = KD.Deployment nm ns $ map toKubeContainers cs
-    where toKubeContainers (Container nm im) = KD.Container nm im
+toKubeDeployment (Deployment nm ns cs) = KD.Deployment nm ns $ map toKubeContainer cs
+    where toKubeContainer (Container nm im) = KD.Container nm im
 
 getDeployments :: IO (Either String [Deployment])
 getDeployments =

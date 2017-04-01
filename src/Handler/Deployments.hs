@@ -8,9 +8,8 @@ module Handler.Deployments
     , deploymentsServer
     ) where
 
-import Data.ByteString.Lazy.Char8 as L
 import qualified Model.Deployments as M
-
+import qualified Data.ByteString.Lazy.Char8 as L
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Except (ExceptT)
 import Servant ( Get

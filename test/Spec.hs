@@ -1,8 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Kubernetes.Deployments
+import Kubernetes.Services
 
 main :: IO ()
-main = do
-    createDeployment (Deployment "n" "n" [])
+main = getServicesOf "theseus-online" >>= print

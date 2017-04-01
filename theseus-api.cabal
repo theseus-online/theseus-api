@@ -20,8 +20,11 @@ library
                      , Handler.Users
                      , Handler.Myself
                      , Kubernetes.Deployments
+                     , Kubernetes.Services
                      , Model.Deployments
+                     , Model.Services
                      , Handler.Deployments
+                     , Handler.Services
   other-modules:       Kubernetes.Settings
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5 
