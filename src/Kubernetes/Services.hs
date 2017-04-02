@@ -9,6 +9,7 @@ module Kubernetes.Services
     , Port(Port)
     ) where
 
+import GHC.Exts (fromList)
 import Kubernetes.Settings (services, servicesOf)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
 import Data.Aeson ((.:), (.!=), (.:?), (.=), encode, decode, object, FromJSON(..), Value(..))
@@ -24,6 +25,7 @@ instance FromJSON ServiceResult where
 data Service = Service
              { name :: String
              , namespace :: String
+             , backend :: String
              , ports :: [Port]
              } deriving (Show)
 
@@ -32,6 +34,7 @@ instance FromJSON Service where
         Object o -> Service
                 <$> ((o .: "metadata") >>= (.: "name"))
                 <*> ((o .: "metadata") >>= (.: "namespace"))
+                <*> (((o .: "spec") >>= (.:? "selector")) .!= (fromList []) >>= (.:? "app")) .!= "<backend>"
                 <*> ((o .: "spec") >>= (.: "ports") >>= parseJSON)
         x -> fail $ "unexpected json: " ++ show x
 

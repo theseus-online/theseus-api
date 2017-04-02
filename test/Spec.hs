@@ -4,4 +4,4 @@
 import Kubernetes.Services
 
 main :: IO ()
-main = getServicesOf "theseus-online" >>= print
+main = getServices >>= print

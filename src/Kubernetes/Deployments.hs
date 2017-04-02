@@ -11,7 +11,6 @@ module Kubernetes.Deployments
     , Container(Container)
     ) where
 
-import GHC.Exts (fromList)
 import qualified Data.Text as T
 import Network.Wreq (get, post, delete, deleteWith, param, defaults, responseBody, responseStatus, statusCode)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
