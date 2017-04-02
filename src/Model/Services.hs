@@ -5,7 +5,8 @@
 module Model.Services 
     ( getServices
     , getServicesOf
-    , Service
+    , createService
+    , Service(..)
     ) where
 
 import GHC.Generics (Generic)
@@ -51,3 +52,6 @@ getServicesOf username =
     KS.getServicesOf username >>= \case
         Left msg -> return $ Left msg
         Right svcs -> return $ Right $ map (\svc -> fromKubeService svc) svcs
+
+createService :: Service -> IO (Either String ())
+createService svc = KS.createService $ toKubeService svc

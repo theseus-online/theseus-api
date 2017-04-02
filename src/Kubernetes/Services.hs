@@ -5,6 +5,7 @@
 module Kubernetes.Services 
     ( getServices
     , getServicesOf
+    , createService
     , Service(Service)
     , Port(Port)
     ) where
@@ -67,3 +68,22 @@ getServicesOf namespace = do
     case decode (r ^. responseBody) of
         Just (ServiceResult svcs) -> return $ Right svcs
         Nothing -> return $ Left $ "request kubernetes failed" ++ show (r ^. responseBody)
+
+createService :: Service -> IO (Either String ())
+createService svc = do
+    let s = object [ "metadata" .= serviceMeta svc
+                   , "spec" .= serviceSpec svc
+                   ]
+    post ((servicesOf . namespace) svc) s
+    return $ Right ()
+
+    where serviceMeta (Service nm ns _ _) = object [ "name" .= nm
+                                                    , "namespace" .= ns
+                                                    , "labels" .= object ["service" .= nm]
+                                                    ]
+
+          serviceSpec (Service _ _ be ps) = object [ "selector" .= object ["app" .= be] 
+                                                   , "ports" .= servicePorts ps
+                                                   ]
+
+          servicePorts ps = map (\(Port nm pro p tp) -> object ["name" .= nm, "protocol" .= pro, "port" .= p, "targetPort" .= tp]) ps
