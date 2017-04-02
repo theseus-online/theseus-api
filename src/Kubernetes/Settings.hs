@@ -5,6 +5,7 @@ module Kubernetes.Settings
     , replicasetsOf
     , podsOf
     , services
+    , serviceOf
     , servicesOf
     ) where
 
@@ -34,3 +35,6 @@ services = apiV1 ++ "/services"
 
 servicesOf :: String -> String
 servicesOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/services"
+
+serviceOf :: String -> String -> String
+serviceOf namespace name = servicesOf namespace ++ "/" ++ name

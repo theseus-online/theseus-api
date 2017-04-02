@@ -6,6 +6,7 @@ module Model.Services
     ( getServices
     , getServicesOf
     , createService
+    , deleteService
     , Service(..)
     ) where
 
@@ -55,3 +56,6 @@ getServicesOf username =
 
 createService :: Service -> IO (Either String ())
 createService svc = KS.createService $ toKubeService svc
+
+deleteService :: String -> String -> IO (Either String ())
+deleteService = KS.deleteService

@@ -40,10 +40,16 @@ type ServicesAPI = "users" :> Capture "username" String
                            :> "services"
                            :> ReqBody '[JSON] M.Service
                            :> PostCreated '[JSON] NoContent
+              :<|> "users" :> Header "name" String
+                           :> Capture "username" String
+                           :> "services"
+                           :> Capture "service_name" String
+                           :> DeleteNoContent '[JSON] NoContent
 
 servicesServer :: Server ServicesAPI
 servicesServer = getServices
             :<|> createService
+            :<|> deleteService
 
 getServices :: String -> ExceptT ServantErr IO [M.Service]
 getServices username = do
@@ -59,3 +65,10 @@ createService mhUname pUname svc = do
             Right _ -> return NoContent
             Left err -> throwError $ err500 { errBody = L.pack err }
         _ -> throwError err403
+
+deleteService :: Maybe String -> String -> String -> ExceptT ServantErr IO NoContent
+deleteService mhUname pUname svcName = case mhUname of
+    Just hUname | hUname == pUname -> (liftIO $ M.deleteService pUname svcName) >>= \case
+        Right _ -> return NoContent
+        Left err -> throwError $ err500 { errBody = L.pack err }
+    _ -> throwError err403

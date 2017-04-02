@@ -6,12 +6,13 @@ module Kubernetes.Services
     ( getServices
     , getServicesOf
     , createService
+    , deleteService
     , Service(Service)
     , Port(Port)
     ) where
 
 import GHC.Exts (fromList)
-import Kubernetes.Settings (services, servicesOf)
+import Kubernetes.Settings (services, serviceOf, servicesOf)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
 import Data.Aeson ((.:), (.!=), (.:?), (.=), encode, decode, object, FromJSON(..), Value(..))
 import Network.Wreq (get, post, delete, deleteWith, param, defaults, responseBody, responseStatus, statusCode)
@@ -87,3 +88,8 @@ createService svc = do
                                                    ]
 
           servicePorts ps = map (\(Port nm pro p tp) -> object ["name" .= nm, "protocol" .= pro, "port" .= p, "targetPort" .= tp]) ps
+
+deleteService :: String -> String -> IO (Either String ())
+deleteService namespace name = do
+    delete $ serviceOf namespace name
+    return $ Right ()
