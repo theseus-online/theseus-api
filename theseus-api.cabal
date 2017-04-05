@@ -21,13 +21,16 @@ library
                      , Handler.Myself
                      , Kubernetes.Deployments
                      , Kubernetes.Services
+                     , Kubernetes.Ingresses
                      , Model.Deployments
                      , Model.Services
+                     , Model.Ingresses
                      , Handler.Deployments
                      , Handler.Services
+                     , Handler.Ingresses
   other-modules:       Kubernetes.Settings
   default-language:    Haskell2010
-  build-depends:       base >= 4.7 && < 5 
+  build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server
                      , wreq
@@ -36,6 +39,7 @@ library
                      , bytestring
                      , text
                      , transformers
+                     , unordered-containers
 
 executable theseus-api-exe
   hs-source-dirs:      app

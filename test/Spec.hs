@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Kubernetes.Services
+import Model.Ingresses
 
 main :: IO ()
-main = getServices >>= print
+main = getIngressesOf "theseus-online" >>= print

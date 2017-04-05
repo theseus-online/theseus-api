@@ -8,6 +8,7 @@ import Handler.Myself (MyselfAPI, myselfServer)
 import Handler.Users (UsersAPI, usersServer)
 import Handler.Deployments (DeploymentsAPI, deploymentsServer)
 import Handler.Services (ServicesAPI, servicesServer)
+import Handler.Ingresses (IngressesAPI, ingressesServer)
 import Network.Wai.Handler.Warp (setHost, setPort, runSettings, defaultSettings)
 import Servant (Application, Server(..), Proxy(Proxy), serve, (:<|>)((:<|>)))
 
@@ -15,12 +16,14 @@ type TheseusAPI = MyselfAPI
              :<|> UsersAPI
              :<|> DeploymentsAPI
              :<|> ServicesAPI
+             :<|> IngressesAPI
 
 server :: Server TheseusAPI
 server = myselfServer
     :<|> usersServer
     :<|> deploymentsServer
     :<|> servicesServer
+    :<|> ingressesServer
 
 app :: Application
 app = serve (Proxy :: Proxy TheseusAPI) server

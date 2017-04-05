@@ -7,6 +7,9 @@ module Kubernetes.Settings
     , services
     , serviceOf
     , servicesOf
+    , ingresses
+    , ingressOf
+    , ingressesOf
     ) where
 
 apiV1 :: String
@@ -38,3 +41,12 @@ servicesOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/services"
 
 serviceOf :: String -> String -> String
 serviceOf namespace name = servicesOf namespace ++ "/" ++ name
+
+ingresses :: String
+ingresses = apiExtensions ++ "/ingresses"
+
+ingressesOf :: String -> String
+ingressesOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/ingresses"
+
+ingressOf :: String -> String -> String
+ingressOf namespace name = ingressesOf namespace ++ "/" ++ name

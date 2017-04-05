@@ -32,8 +32,8 @@ import Servant ( Get
                , (:<|>)((:<|>))
                )
 
-type ServicesAPI = "users" :> Capture "username" String 
-                           :> "services" 
+type ServicesAPI = "users" :> Capture "username" String
+                           :> "services"
                            :> Get '[JSON] [M.Service]
               :<|> "users" :> Header "name" String
                            :> Capture "username" String
@@ -52,9 +52,9 @@ servicesServer = getServices
             :<|> deleteService
 
 getServices :: String -> ExceptT ServantErr IO [M.Service]
-getServices username = do
+getServices username =
     (liftIO $ M.getServicesOf username) >>= \case
-        Right deps -> return deps
+        Right svcs -> return svcs
         Left err -> throwError $ err500 { errBody = L.pack err }
 
 createService :: Maybe String -> String -> M.Service -> ExceptT ServantErr IO NoContent
