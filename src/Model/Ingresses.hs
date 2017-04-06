@@ -13,13 +13,13 @@ import qualified Kubernetes.Ingresses as KI
 import Data.Aeson (ToJSON, FromJSON)
 
 data Ingress = Ingress
-                           { name :: String
-                           , namespace :: String
-                           , host :: String
-                           , secure :: Bool
-                           , serviceName :: String
-                           , servicePort :: Int
-                           } deriving (Show, Generic)
+             { name :: String
+             , owner :: String
+             , host :: String
+             , secure :: Bool
+             , serviceName :: String
+             , servicePort :: Int
+             } deriving (Show, Generic)
 
 instance FromJSON Ingress
 instance ToJSON Ingress
