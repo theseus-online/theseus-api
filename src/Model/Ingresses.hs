@@ -5,6 +5,7 @@
 module Model.Ingresses
     ( getIngresses
     , getIngressesOf
+    , createIngress
     , Ingress(..)
     ) where
 
@@ -39,3 +40,6 @@ getIngressesOf :: String -> IO (Either String [Ingress])
 getIngressesOf username = KI.getIngressesOf username >>= \case
     Left msg -> return $ Left msg
     Right ings -> return $ Right $ map (\ing -> fromKubeIngress ing) ings
+
+createIngress :: Ingress -> IO (Either String ())
+createIngress ing = KI.createIngress $ toKubeIngress ing
