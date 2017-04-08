@@ -40,10 +40,16 @@ type IngressesAPI = "users" :> Capture "username" String
                             :> "ingresses"
                             :> ReqBody '[JSON] M.Ingress
                             :> PostCreated '[JSON] NoContent
+               :<|> "users" :> Header "name" String
+                            :> Capture "username" String
+                            :> "ingresses"
+                            :> Capture "ingress_name" String
+                            :> DeleteNoContent '[JSON] NoContent
 
 ingressesServer :: Server IngressesAPI
 ingressesServer = getIngresses
              :<|> createIngress
+             :<|> deleteIngress
 
 getIngresses :: String -> ExceptT ServantErr IO [M.Ingress]
 getIngresses username =
@@ -59,3 +65,10 @@ createIngress mhUname pUname ing = do
             Right _ -> return NoContent
             Left err -> throwError $ err500 { errBody = L.pack err }
         _ -> throwError err403
+
+deleteIngress :: Maybe String -> String -> String -> ExceptT ServantErr IO NoContent
+deleteIngress mhUname pUname ingName = case mhUname of
+    Just hUname | hUname == pUname -> (liftIO $ M.deleteIngress pUname ingName) >>= \case
+        Right _ -> return NoContent
+        Left err -> throwError $ err500 { errBody = L.pack err }
+    _ -> throwError err403

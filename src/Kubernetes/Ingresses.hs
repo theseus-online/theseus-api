@@ -6,6 +6,7 @@ module Kubernetes.Ingresses
     ( getIngresses
     , getIngressesOf
     , createIngress
+    , deleteIngress
     , Ingress(..)
     ) where
 
@@ -103,3 +104,8 @@ createIngress ing = do
           pathsSpec sn sp = Array $ fromList [ object [ "backend" .= object [ "serviceName" .= sn
                                                                             , "servicePort" .= sp
                                                                             ]]]
+
+deleteIngress :: String -> String -> IO (Either String ())
+deleteIngress namespace name = do
+    delete $ ingressOf namespace name
+    return $ Right ()

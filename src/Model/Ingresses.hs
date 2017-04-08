@@ -6,6 +6,7 @@ module Model.Ingresses
     ( getIngresses
     , getIngressesOf
     , createIngress
+    , deleteIngress
     , Ingress(..)
     ) where
 
@@ -43,3 +44,6 @@ getIngressesOf username = KI.getIngressesOf username >>= \case
 
 createIngress :: Ingress -> IO (Either String ())
 createIngress ing = KI.createIngress $ toKubeIngress ing
+
+deleteIngress :: String -> String -> IO (Either String ())
+deleteIngress = KI.deleteIngress
