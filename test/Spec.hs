@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Model.Ingresses
+import Model.Volumes
 
 main :: IO ()
-main = getIngressesOf "theseus-online" >>= print
+main = getVolumes >>= print
