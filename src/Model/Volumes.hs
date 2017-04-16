@@ -6,8 +6,10 @@ module Model.Volumes
     ( getVolumes
     , getVolumesOf
     , getVolumeContent
+    , createVolume
+    , deleteVolume
     , Content
-    , Volume
+    , Volume(..)
     ) where
 
 import GHC.Generics (Generic)
@@ -15,7 +17,12 @@ import Control.Monad (forM)
 import Model.Settings (volumeRoot)
 import Data.Aeson (ToJSON(toJSON), FromJSON, object, (.=))
 import System.FilePath ((</>))
-import System.Directory (doesDirectoryExist, getDirectoryContents)
+import System.Directory
+    ( doesDirectoryExist
+    , getDirectoryContents
+    , createDirectory
+    , removeDirectoryRecursive
+    )
 import System.FilePath.Posix(takeFileName)
 
 data Content = File String | Directory String [Content] deriving (Show)
@@ -59,6 +66,16 @@ getVolumesOf :: String -> IO (Either String [Volume])
 getVolumesOf username = getRecursiveContents (volumeRoot </> username) >>= \case
     Directory _ vs -> do
         return $ Right $ (`map` vs) $ \(Directory vp _) -> Volume (takeFileName vp) username
+
+createVolume :: Volume -> IO (Either String ())
+createVolume v = do
+    createDirectory $ volumeRoot </> (owner v) </> (name v)
+    return $ Right ()
+
+deleteVolume :: String -> String -> IO (Either String ())
+deleteVolume username volume = do
+    removeDirectoryRecursive $ volumeRoot </> username </> volume
+    return $ Right ()
 
 getVolumeContent :: String -> String -> IO (Either String Content)
 getVolumeContent username volume =
