@@ -79,4 +79,6 @@ deleteVolume username volume = do
 
 getVolumeContent :: String -> String -> IO (Either String Content)
 getVolumeContent username volume =
-    fmap (\c -> Right c) $ getRecursiveContents (volumeRoot </> username </> volume)
+    getRecursiveContents (volumeRoot </> username </> volume) >>= \case
+        Directory _ vs -> return $ Right (Directory "/" vs)
+        File _ -> return $ Left "Volumes directory contains a normal file"

@@ -34,16 +34,19 @@ library
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , aeson
-                     , servant-server
                      , wreq
                      , lens-aeson
                      , lens
                      , bytestring
                      , text
+                     , wai
                      , transformers
                      , unordered-containers
                      , filepath
                      , directory
+                     , servant
+                     , servant-server
+                     , http-types
 
 executable theseus-api-exe
   hs-source-dirs:      app
@@ -56,8 +59,6 @@ executable theseus-api-exe
                      , attoparsec
                      , bytestring
                      , time
-                     , servant
-                     , servant-server
                      , string-conversions
                      , http-media
                      , lucid
@@ -68,8 +69,7 @@ executable theseus-api-exe
                      , wai-extra
                      , warp
                      , wreq
-
-
+                     , servant-server
   default-language:    Haskell2010
 
 test-suite theseus-api-test

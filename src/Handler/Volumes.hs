@@ -8,12 +8,18 @@ module Handler.Volumes
     , volumesServer
     ) where
 
+import Data.List (foldl')
 import Model.Settings (volumeRoot)
 import System.FilePath ((</>))
+import System.Directory (removeFile, createDirectoryIfMissing, removeDirectoryRecursive)
+import Network.Wai (Request(requestMethod, pathInfo, requestBody), responseLBS)
 import qualified Model.Volumes as M
+import qualified Data.ByteString as B
+import qualified Data.Text as T
 import qualified Data.ByteString.Lazy.Char8 as L
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Except (ExceptT)
+import Network.HTTP.Types.Status (status204, status403, status405)
 import Servant ( Get
                , Raw
                , Post
@@ -43,10 +49,17 @@ type VolumesAPI = "users" :> Capture "username" String
                           :> "volumes"
                           :> Capture "volume" String
                           :> Get '[JSON] M.Content
-             :<|> "users" :> Capture "username"  String
+             :<|> "users" :> Header "name" String
+                          :> Capture "username"  String
                           :> "volumes"
                           :> Capture "volume" String
                           :> "files"
+                          :> Raw
+             :<|> "users" :> Header "name" String
+                          :> Capture "username"  String
+                          :> "volumes"
+                          :> Capture "volume" String
+                          :> "folders"
                           :> Raw
              :<|> "users" :> Header "name" String
                           :> Capture "username" String
@@ -62,7 +75,8 @@ type VolumesAPI = "users" :> Capture "username" String
 volumesServer :: Server VolumesAPI
 volumesServer = getVolumes
            :<|> getVolumeContent
-           :<|> getFileContent
+           :<|> serveFile
+           :<|> serveFolder
            :<|> createVolume
            :<|> deleteVolume
 
@@ -80,8 +94,63 @@ getVolumeContent username vName = do
         Right c -> return c
         Left err -> throwError $ err500 { errBody = L.pack err }
 
-getFileContent :: String -> String -> Server Raw
-getFileContent username vName = serveDirectory $ volumeRoot </> username </> vName
+serveFile :: Maybe String -> String -> String -> Server Raw
+serveFile mhUname pUname vName =
+    case mhUname of
+        Just hUname | hUname == pUname -> fileHandler
+        _ -> e403Handler
+
+    where
+        fileHandler req respond = case requestMethod req of
+            "GET" -> (serveDirectory rootPath) req respond
+            "HEAD" -> (serveDirectory rootPath) req respond
+            "PUT" -> uploadHandler req respond
+            "DELETE" -> removehandler req respond
+            otherwise -> respond $ responseLBS status405 [] "Only GET/HEAD/PUT/DELETE allowed."
+
+        uploadHandler req respond = do
+            let ps = pathInfo req
+            let fpath = foldl' (\p i -> p </> (T.unpack i)) rootPath ps
+            liftIO (requestBody req >>= B.writeFile fpath)
+            respond $ responseLBS status204 [] ""
+
+        removehandler req respond = do
+            let ps = pathInfo req
+            let fpath = foldl' (\p i -> p </> (T.unpack i)) rootPath ps
+            liftIO $ removeFile fpath
+            respond $ responseLBS status204 [] ""
+
+        e403Handler _ respond = respond $ responseLBS status403 [] "Forbiden"
+
+        rootPath = volumeRoot </> pUname </> vName
+
+serveFolder :: Maybe String -> String -> String -> Server Raw
+serveFolder mhUname pUname vName =
+    case mhUname of
+        Just hUname | hUname == pUname -> folderHandler
+        _ -> e403Handler
+
+    where
+        folderHandler req respond = case requestMethod req of
+            "PUT" -> uploadHandler req respond
+            "DELETE" -> removehandler req respond
+            otherwise -> respond $ responseLBS status405 [] "Only PUT/DELETE allowed."
+
+        uploadHandler req respond = do
+            let ps = pathInfo req
+            let fpath = foldl' (\p i -> p </> (T.unpack i)) rootPath ps
+            liftIO $ createDirectoryIfMissing True fpath
+            respond $ responseLBS status204 [] ""
+
+        removehandler req respond = do
+            let ps = pathInfo req
+            let fpath = foldl' (\p i -> p </> (T.unpack i)) rootPath ps
+            liftIO $ removeDirectoryRecursive fpath
+            respond $ responseLBS status204 [] ""
+
+        e403Handler _ respond = respond $ responseLBS status403 [] "Forbiden"
+
+        rootPath = volumeRoot </> pUname </> vName
 
 createVolume :: Maybe String -> String -> M.Volume -> ExceptT ServantErr IO NoContent
 createVolume mhUname pUname volume = do
