@@ -26,18 +26,31 @@ instance FromJSON Deployment
 data Container = Container
                { name :: String
                , image :: String
+               , volumes :: [Volume]
                } deriving (Show, Generic)
 
 instance ToJSON Container
 instance FromJSON Container
 
+data Volume = Volume
+            { name :: String
+            , mountPath :: String
+            } deriving (Show, Generic)
+
+instance ToJSON Volume
+instance FromJSON Volume
+
 fromKubeDeployment :: KD.Deployment -> Deployment
 fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns $ map fromKubeContainer cs
-    where fromKubeContainer (KD.Container nm im) = Container nm im
+    where
+        fromKubeContainer (KD.Container nm im vs) = Container nm im $ map fromKubeVolume vs
+        fromKubeVolume (KD.Volume nm mp) = Volume nm mp
 
 toKubeDeployment :: Deployment -> KD.Deployment
 toKubeDeployment (Deployment nm ns cs) = KD.Deployment nm ns $ map toKubeContainer cs
-    where toKubeContainer (Container nm im) = KD.Container nm im
+    where
+        toKubeContainer (Container nm im vs) = KD.Container nm im $ map toKubeVolume vs
+        toKubeVolume (Volume nm mp) = KD.Volume nm mp
 
 getDeployments :: IO (Either String [Deployment])
 getDeployments =

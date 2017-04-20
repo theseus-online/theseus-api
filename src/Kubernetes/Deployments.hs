@@ -2,19 +2,26 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module Kubernetes.Deployments 
+module Kubernetes.Deployments
     ( getDeployments
     , getDeploymentsOf
     , createDeployment
     , deleteDeployment
     , Deployment(Deployment)
     , Container(Container)
+    , Volume(Volume)
     ) where
 
+import Crypto.Hash.SHA1 (hash)
+import System.FilePath ((</>))
+import Text.Printf (printf)
+import GHC.Exts (fromList)
+import Data.List (nub)
+import qualified Data.ByteString.Char8 as B
 import qualified Data.Text as T
 import Network.Wreq (get, post, delete, deleteWith, param, defaults, responseBody, responseStatus, statusCode)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
-import Kubernetes.Settings (deployments, deploymentOf, deploymentsOf, replicasetsOf, podsOf)
+import Kubernetes.Settings (deployments, deploymentOf, deploymentsOf, replicasetsOf, podsOf, volumeRoot)
 import Data.Aeson ((.:), (.!=), (.:?), (.=), encode, decode, object, FromJSON(..), Value(..))
 
 data DeploymentResult = DeploymentResult [Deployment] deriving (Show)
@@ -41,13 +48,27 @@ instance FromJSON Deployment where
 data Container = Container
                { name :: String
                , image ::String
+               , volumes :: [Volume]
                } deriving (Show)
 
 instance FromJSON Container where
     parseJSON = \case
         Object o -> Container
-                 <$> (o .: "name")
-                 <*> (o .: "image")
+                <$> (o .: "name")
+                <*> (o .: "image")
+                <*> (((o .:? "volumeMounts")) .!= (Array $ fromList []) >>= parseJSON)
+        x -> fail $ "unexpected json: " ++ show x
+
+data Volume = Volume
+            { name :: String
+            , mountPath :: String
+            } deriving (Show)
+
+instance FromJSON Volume where
+    parseJSON = \case
+        Object o -> Volume
+                <$> (o .: "name")
+                <*> (o .: "mountPath")
         x -> fail $ "unexpected json: " ++ show x
 
 getDeployments :: IO (Either String [Deployment])
@@ -72,16 +93,32 @@ createDeployment dep = do
     post ((deploymentsOf . namespace) dep) d
     return $ Right ()
 
-    where deploymentMeta (Deployment nm ns _) = object [ "name" .= nm
-                                                       , "namespace" .= ns
-                                                       ]
+    where
+        deploymentMeta (Deployment nm ns _) = object [ "name" .= nm
+                                                     , "namespace" .= ns
+                                                     ]
 
-          deploymentSpec (Deployment nm ns cs) = object
-                                               [ "template" .= object [ "metadata" .= object ["labels" .= object ["app" .= nm]]
-                                                                      , "spec" .= object ["containers" .= deploymentContainers cs]]
-                                               ]
+        deploymentSpec (Deployment nm ns cs) = object [
+            "template" .= object [ "metadata" .= object ["labels" .= object ["app" .= nm]]
+                                 , "spec" .= object [ "containers" .= deploymentContainers cs
+                                                    , "volumes" .= deploymentVolumes ns (foldContainerVolumes cs)
+                                                    ]]]
 
-          deploymentContainers cs = map (\(Container n i) -> object ["name" .= n, "image" .= i]) cs
+        foldContainerVolumes cs = concat $ map (\(Container _ _ vs) -> map (\(Volume n _) -> n) vs) cs
+
+        deploymentVolumes ns vs = map (\v -> object [ "name" .= v
+                                                    , if v == "empty-dir"
+                                                        then ("emptyDir" .= object [])
+                                                        else ("hostPath" .= object ["path" .= (volumeRoot </> ns </> v)])
+                                                    ]) (nub vs)
+
+        toHex bytes = B.unpack bytes >>= printf "%02x"
+
+        deploymentContainers cs = map (\(Container n i vs) -> object [ "name" .= n
+                                                                     , "image" .= i
+                                                                     , "volumeMounts" .= containerVolumes vs]) cs
+
+        containerVolumes vs = map(\(Volume n m) -> object ["name" .= n, "mountPath" .= m]) vs
 
 deleteDeployment :: String -> String -> IO (Either String ())
 deleteDeployment namespace name = do

@@ -10,6 +10,7 @@ module Kubernetes.Settings
     , ingresses
     , ingressOf
     , ingressesOf
+    , volumeRoot
     ) where
 
 apiV1 :: String
@@ -50,3 +51,6 @@ ingressesOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/ingres
 
 ingressOf :: String -> String -> String
 ingressOf namespace name = ingressesOf namespace ++ "/" ++ name
+
+volumeRoot :: FilePath
+volumeRoot = "/theseus-volume"

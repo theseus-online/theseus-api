@@ -47,6 +47,7 @@ library
                      , servant
                      , servant-server
                      , http-types
+                     , cryptohash
 
 executable theseus-api-exe
   hs-source-dirs:      app
@@ -70,6 +71,7 @@ executable theseus-api-exe
                      , warp
                      , wreq
                      , servant-server
+
   default-language:    Haskell2010
 
 test-suite theseus-api-test
