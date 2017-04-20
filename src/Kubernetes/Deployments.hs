@@ -107,7 +107,7 @@ createDeployment dep = do
         foldContainerVolumes cs = concat $ map (\(Container _ _ vs) -> map (\(Volume n _) -> n) vs) cs
 
         deploymentVolumes ns vs = map (\v -> object [ "name" .= v
-                                                    , if v == "empty-dir"
+                                                    , if take 9 v == "empty-dir"
                                                         then ("emptyDir" .= object [])
                                                         else ("hostPath" .= object ["path" .= (volumeRoot </> ns </> v)])
                                                     ]) (nub vs)
