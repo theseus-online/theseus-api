@@ -21,6 +21,7 @@ import System.Directory
     ( doesDirectoryExist
     , getDirectoryContents
     , createDirectory
+    , createDirectoryIfMissing
     , removeDirectoryRecursive
     )
 import System.FilePath.Posix(takeFileName)
@@ -63,9 +64,11 @@ getVolumes = getRecursiveContents volumeRoot >>= \case
         return (Right $ concat vss)
 
 getVolumesOf :: String -> IO (Either String [Volume])
-getVolumesOf username = getRecursiveContents (volumeRoot </> username) >>= \case
-    Directory _ vs -> do
-        return $ Right $ (`map` vs) $ \(Directory vp _) -> Volume (takeFileName vp) username
+getVolumesOf username = do
+    createDirectoryIfMissing True $ volumeRoot </> username
+    getRecursiveContents (volumeRoot </> username) >>= \case
+        Directory _ vs -> do
+            return $ Right $ (`map` vs) $ \(Directory vp _) -> Volume (takeFileName vp) username
 
 createVolume :: Volume -> IO (Either String ())
 createVolume v = do
