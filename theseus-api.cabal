@@ -85,4 +85,4 @@ test-suite theseus-api-test
 
 source-repository head
   type:     git
-  location: https://github.com/githubuser/theseus-api
+  location: https://github.com/theseus-online/theseus-api

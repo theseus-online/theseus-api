@@ -49,24 +49,24 @@ type VolumesAPI = "users" :> Capture "username" String
                           :> "volumes"
                           :> Capture "volume" String
                           :> Get '[JSON] M.Content
-             :<|> "users" :> Header "name" String
+             :<|> "users" :> Header "x-theseus-username" String
                           :> Capture "username"  String
                           :> "volumes"
                           :> Capture "volume" String
                           :> "files"
                           :> Raw
-             :<|> "users" :> Header "name" String
+             :<|> "users" :> Header "x-theseus-username" String
                           :> Capture "username"  String
                           :> "volumes"
                           :> Capture "volume" String
                           :> "folders"
                           :> Raw
-             :<|> "users" :> Header "name" String
+             :<|> "users" :> Header "x-theseus-username" String
                           :> Capture "username" String
                           :> "volumes"
                           :> ReqBody '[JSON] M.Volume
                           :> PostCreated '[JSON] NoContent
-             :<|> "users" :> Header "name" String
+             :<|> "users" :> Header "x-theseus-username" String
                           :> Capture "username" String
                           :> "volumes"
                           :> Capture "volume_name" String

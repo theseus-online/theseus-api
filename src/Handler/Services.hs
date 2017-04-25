@@ -35,12 +35,12 @@ import Servant ( Get
 type ServicesAPI = "users" :> Capture "username" String
                            :> "services"
                            :> Get '[JSON] [M.Service]
-              :<|> "users" :> Header "name" String
+              :<|> "users" :> Header "x-theseus-username" String
                            :> Capture "username" String
                            :> "services"
                            :> ReqBody '[JSON] M.Service
                            :> PostCreated '[JSON] NoContent
-              :<|> "users" :> Header "name" String
+              :<|> "users" :> Header "x-theseus-username" String
                            :> Capture "username" String
                            :> "services"
                            :> Capture "service_name" String

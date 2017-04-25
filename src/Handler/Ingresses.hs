@@ -35,12 +35,12 @@ import Servant ( Get
 type IngressesAPI = "users" :> Capture "username" String
                             :> "ingresses"
                             :> Get '[JSON] [M.Ingress]
-               :<|> "users" :> Header "name" String
+               :<|> "users" :> Header "x-theseus-username" String
                             :> Capture "username" String
                             :> "ingresses"
                             :> ReqBody '[JSON] M.Ingress
                             :> PostCreated '[JSON] NoContent
-               :<|> "users" :> Header "name" String
+               :<|> "users" :> Header "x-theseus-username" String
                             :> Capture "username" String
                             :> "ingresses"
                             :> Capture "ingress_name" String

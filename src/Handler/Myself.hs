@@ -1,29 +1,27 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Handler.Myself 
+module Handler.Myself
     ( MyselfAPI
     , myselfServer
     ) where
 
-import Model.Users (User(..))
-import Servant (Get, JSON, Server, Proxy(..), Header, (:>), err400, errBody, throwError)
+import Control.Monad.IO.Class (liftIO)
+import qualified Model.Users as M
+import Servant (Get, JSON, Server, Proxy(..), Header, (:>), err500, errBody, throwError)
 
 type MyselfAPI = "myself"
-              :> Header "name" String
-              :> Header "email" String
-              :> Header "avatar" String
-              :> Get '[JSON] User
+              :> Header "x-theseus-username" String
+              :> Get '[JSON] M.User
 
 myselfServer :: Server MyselfAPI
-myselfServer maybeName maybeEmail maybeAvatar = case maybeUser of
-    Just user -> return user
-    Nothing -> throwError badRequest -- TODO: report this.
+myselfServer maybeName = case maybeName of
+    Just username -> (liftIO (M.getUser username)) >>= \case
+        Just user -> return user
+        Nothing -> throwError brokenGateWay -- TODO: report this, this is a critical error.
+    Nothing -> throwError brokenGateWay     -- TODO: report this, this is a critical error.
 
-    where maybeUser = maybeName 
-                  >>= \name -> maybeEmail
-                  >>= \email -> maybeAvatar
-                  >>= \avatar -> Just $ User name email avatar
-
-          badRequest = err400 { errBody = "one of 'name', 'email', 'avatar' not shown." }
+    where
+        brokenGateWay = err500 { errBody = "unauthorized user reaches api." }

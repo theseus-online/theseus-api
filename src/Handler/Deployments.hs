@@ -35,12 +35,12 @@ import Servant ( Get
 type DeploymentsAPI = "users" :> Capture "username" String
                               :> "deployments"
                               :> Get '[JSON] [M.Deployment]
-                 :<|> "users" :> Header "name" String
+                 :<|> "users" :> Header "x-theseus-username" String
                               :> Capture "username" String
                               :> "deployments"
                               :> ReqBody '[JSON] M.Deployment
                               :> PostCreated '[JSON] NoContent
-                 :<|> "users" :> Header "name" String
+                 :<|> "users" :> Header "x-theseus-username" String
                               :> Capture "username" String
                               :> "deployments"
                               :> Capture "deployment_name" String
