@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 
-module Kubernetes.Services 
+module Kubernetes.Services
     ( getServices
     , getServicesOf
     , createService
@@ -36,7 +36,7 @@ instance FromJSON Service where
         Object o -> Service
                 <$> ((o .: "metadata") >>= (.: "name"))
                 <*> ((o .: "metadata") >>= (.: "namespace"))
-                <*> (((o .: "spec") >>= (.:? "selector")) .!= (fromList []) >>= (.:? "app")) .!= "<backend>"
+                <*> ((((o .: "spec") >>= (.:? "selector")) .!= (fromList []) >>= (.:? "app")) .!= "<backend>")
                 <*> ((o .: "spec") >>= (.: "ports") >>= parseJSON)
         x -> fail $ "unexpected json: " ++ show x
 
@@ -49,7 +49,7 @@ data Port = Port
 
 instance FromJSON Port where
     parseJSON = \case
-        Object o -> Port 
+        Object o -> Port
                 <$> (o .:? "name" .!= "")
                 <*> (o .: "protocol")
                 <*> (o .: "port")
@@ -83,7 +83,7 @@ createService svc = do
                                                     , "labels" .= object ["service" .= nm]
                                                     ]
 
-          serviceSpec (Service _ _ be ps) = object [ "selector" .= object ["app" .= be] 
+          serviceSpec (Service _ _ be ps) = object [ "selector" .= object ["app" .= be]
                                                    , "ports" .= servicePorts ps
                                                    ]
 

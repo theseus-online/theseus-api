@@ -15,7 +15,7 @@ import Kubernetes.Settings (ingresses, ingressOf, ingressesOf)
 import qualified Data.HashMap.Strict as HM
 import GHC.Exts (fromList)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
-import Data.Aeson ((.:), (.!=), (.=), encode, decode, object, FromJSON(..), Value(..))
+import Data.Aeson ((.:), (.=), encode, decode, object, FromJSON(..), Value(..))
 import Network.Wreq (get, post, delete, deleteWith, param, defaults, responseBody, responseStatus, statusCode)
 
 data IngressResult = IngressResult [Ingress] deriving (Show)

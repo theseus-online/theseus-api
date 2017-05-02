@@ -12,9 +12,7 @@ module Kubernetes.Deployments
     , Volume(Volume)
     ) where
 
-import Crypto.Hash.SHA1 (hash)
 import System.FilePath ((</>))
-import Text.Printf (printf)
 import GHC.Exts (fromList)
 import Data.List (nub)
 import qualified Data.ByteString.Char8 as B
@@ -73,7 +71,7 @@ instance FromJSON Volume where
 
 getDeployments :: IO (Either String [Deployment])
 getDeployments = do
-    r <- get $ deployments
+    r <- get deployments
     case decode (r ^. responseBody) of
         Just (DeploymentResult deps) -> return $ Right deps
         Nothing -> return $ Left $ "request kubernetes failed" ++ show (r ^. responseBody)
@@ -111,8 +109,6 @@ createDeployment dep = do
                                                         then ("emptyDir" .= object [])
                                                         else ("hostPath" .= object ["path" .= (volumeRoot </> ns </> v)])
                                                     ]) (nub vs)
-
-        toHex bytes = B.unpack bytes >>= printf "%02x"
 
         deploymentContainers cs = map (\(Container n i vs) -> object [ "name" .= n
                                                                      , "image" .= i

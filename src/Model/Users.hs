@@ -12,7 +12,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (decode)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
 import Data.Aeson.Types (ToJSON, FromJSON)
-import Network.Wreq (get, getWith, defaults, header, responseBody)
+import Network.Wreq (get, defaults, header, responseBody)
 import Model.Settings (users, userinfoOf)
 
 data User = User

@@ -3,6 +3,7 @@ module Kubernetes.Settings
     , deploymentOf
     , deploymentsOf
     , replicasetsOf
+    , pods
     , podsOf
     , services
     , serviceOf
@@ -30,6 +31,9 @@ deploymentOf namespace name = deploymentsOf namespace ++ "/" ++ name
 
 replicasetsOf :: String -> String
 replicasetsOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/replicasets"
+
+pods :: String
+pods = apiV1 ++ "/pods"
 
 podsOf :: String -> String
 podsOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/pods"

@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-import Model.Volumes
+import Model.Deployments
 
 main :: IO ()
-main = getVolumes >>= print
+main = getDeploymentsOf "lucklove" >>= print
