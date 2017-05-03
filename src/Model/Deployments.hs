@@ -20,6 +20,7 @@ import Data.Aeson (ToJSON(..), FromJSON, object, (.=))
 data Deployment = Deployment
                 { name :: String
                 , owner :: String
+                , replicas :: Int
                 , containers :: [Container]
                 , pods :: Maybe [Pod]          -- only in response
                 } deriving (Show, Generic)
@@ -73,13 +74,13 @@ instance ToJSON ContainerStatus where
     toJSON _ = "unknown"
 
 fromKubeDeployment :: KD.Deployment -> Deployment
-fromKubeDeployment (KD.Deployment nm ns cs) = Deployment nm ns (map fromKubeContainer cs) Nothing
+fromKubeDeployment (KD.Deployment nm ns rp cs) = Deployment nm ns rp (map fromKubeContainer cs) Nothing
     where
         fromKubeContainer (KD.Container nm im vs) = Container nm im (map fromKubeVolume vs)
         fromKubeVolume (KD.Volume nm mp) = Volume nm mp
 
 toKubeDeployment :: Deployment -> KD.Deployment
-toKubeDeployment (Deployment nm ns cs _) = KD.Deployment nm ns $ map toKubeContainer cs
+toKubeDeployment (Deployment nm ns rp cs _) = KD.Deployment nm ns rp $ map toKubeContainer cs
     where
         toKubeContainer (Container nm im vs) = KD.Container nm im $ map toKubeVolume vs
         toKubeVolume (Volume nm mp) = KD.Volume nm mp
@@ -99,7 +100,7 @@ readDeploymentList depsIO podsIO =
                 Left msg -> return $ Left msg
                 Right pods -> return $ Right $ map (\d -> d { pods = Just $ filterPods d pods }) ds
     where
-        filterPods (Deployment n _ _ _) ps =
+        filterPods (Deployment n _ _ _ _) ps =
             map (\(KP.Pod n _ _ ip cs) -> Pod n ip cs) (filter (\(KP.Pod _ a _ _ _) -> a == n) ps)
 
 

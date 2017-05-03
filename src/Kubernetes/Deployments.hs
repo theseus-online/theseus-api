@@ -32,6 +32,7 @@ instance FromJSON DeploymentResult where
 data Deployment = Deployment
                 { name :: String
                 , namespace :: String
+                , replicas :: Int
                 , containers :: [Container]
                 } deriving (Show)
 
@@ -40,6 +41,7 @@ instance FromJSON Deployment where
         Object o -> Deployment
                 <$> ((o .: "metadata") >>= (.: "name"))
                 <*> ((o .: "metadata") >>= (.: "namespace"))
+                <*> ((o .: "spec") >>= (.: "replicas"))
                 <*> ((o .: "spec") >>= (.: "template") >>= (.: "spec") >>= (.: "containers") >>= parseJSON)
         x -> fail $ "unexpected json: " ++ show x
 
@@ -92,11 +94,12 @@ createDeployment dep = do
     return $ Right ()
 
     where
-        deploymentMeta (Deployment nm ns _) = object [ "name" .= nm
-                                                     , "namespace" .= ns
-                                                     ]
+        deploymentMeta (Deployment nm ns _ _) = object [ "name" .= nm
+                                                       , "namespace" .= ns
+                                                       ]
 
-        deploymentSpec (Deployment nm ns cs) = object [
+        deploymentSpec (Deployment nm ns rp cs) = object [
+            "replicas" .= rp,
             "template" .= object [ "metadata" .= object ["labels" .= object ["app" .= nm]]
                                  , "spec" .= object [ "containers" .= deploymentContainers cs
                                                     , "volumes" .= deploymentVolumes ns (foldContainerVolumes cs)
