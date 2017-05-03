@@ -9,12 +9,16 @@ module Handler.Deployments
     ) where
 
 import qualified Model.Deployments as M
+import qualified Model.Logs as M
 import qualified Data.ByteString.Lazy.Char8 as L
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Except (ExceptT)
+import Network.Wai (responseLBS)
+import Network.HTTP.Types.Status (status200, status404)
 import Servant ( Get
                , Post
                , JSON
+               , Raw
                , Server
                , Header
                , Proxy(..)
@@ -45,12 +49,26 @@ type DeploymentsAPI = "users" :> Capture "username" String
                               :> "deployments"
                               :> Capture "deployment_name" String
                               :> DeleteNoContent '[JSON] NoContent
+                 :<|> "users" :> Capture "username" String
+                              :> "pods"
+                              :> Capture "pod" String
+                              :> "containers"
+                              :> Capture "container" String
+                              :> "logs"
+                              :> Raw
 
 deploymentsServer :: Server DeploymentsAPI
 deploymentsServer = getDeployments
                :<|> createDeployment
                :<|> deleteDeployment
+               :<|> getLogs
 
+getLogs :: String -> String -> String -> Server Raw
+getLogs username pod container = getLogsOfPod
+    where
+        getLogsOfPod _ respond = M.getLogsOf username pod container >>= \case
+            Just logs -> respond $ responseLBS status200 [] logs
+            Nothing -> respond $ responseLBS status404 [] "no such container"
 
 getDeployments :: String -> ExceptT ServantErr IO [M.Deployment]
 getDeployments username = do

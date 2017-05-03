@@ -21,6 +21,7 @@ library
                      , Model.Services
                      , Model.Ingresses
                      , Model.Volumes
+                     , Model.Logs
                      , Handler.Users
                      , Handler.Myself
                      , Handler.Deployments

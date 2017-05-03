@@ -5,6 +5,7 @@ module Kubernetes.Settings
     , replicasetsOf
     , pods
     , podsOf
+    , logsOf
     , services
     , serviceOf
     , servicesOf
@@ -37,6 +38,9 @@ pods = apiV1 ++ "/pods"
 
 podsOf :: String -> String
 podsOf namespace = apiV1 ++ "/namespaces/" ++ namespace ++ "/pods"
+
+logsOf :: String -> String -> String
+logsOf namespace pod = apiV1 ++ "/namespaces/" ++ namespace ++ "/pods/" ++ pod ++ "/log"
 
 services :: String
 services = apiV1 ++ "/services"

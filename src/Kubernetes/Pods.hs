@@ -5,13 +5,15 @@
 module Kubernetes.Pods
     ( getPods
     , getPodsOf
+    , getLogsOf
     , Pod(..)
     , ContainerInstance(..)
     , ContainerStatus(..)
     ) where
 
 import qualified Data.Text as T
-import Kubernetes.Settings (pods, podsOf)
+import qualified Data.ByteString.Lazy.Internal as B
+import Kubernetes.Settings (pods, podsOf, logsOf)
 import qualified Data.HashMap.Strict as HM
 import GHC.Exts (fromList)
 import Control.Lens ((&), (.~), (^.), (^?), (^..))
@@ -103,3 +105,9 @@ getPodsOf namespace = do
     case decode (r ^. responseBody) of
         Just (PodResult pods) -> return $ Right pods
         Nothing -> return $ Left $ "request kubernetes failed" ++ show (r ^. responseBody)
+
+getLogsOf :: String -> String -> String -> IO (Maybe B.ByteString)
+getLogsOf namespace pod container = do
+    let opts = defaults & param "container" .~ [T.pack container]
+    r <- getWith opts $ logsOf namespace pod
+    return $ Just $ r ^. responseBody
