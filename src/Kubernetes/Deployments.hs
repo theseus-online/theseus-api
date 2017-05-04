@@ -49,6 +49,8 @@ data Container = Container
                { name :: String
                , image ::String
                , volumes :: [Volume]
+               , command :: Maybe [String]
+               , args :: Maybe [String]
                } deriving (Show)
 
 instance FromJSON Container where
@@ -57,6 +59,8 @@ instance FromJSON Container where
                 <$> (o .: "name")
                 <*> (o .: "image")
                 <*> (((o .:? "volumeMounts")) .!= (Array $ fromList []) >>= parseJSON)
+                <*> ((o .:? "command") .!= Nothing)
+                <*> ((o .:? "args") .!= Nothing)
         x -> fail $ "unexpected json: " ++ show x
 
 data Volume = Volume
@@ -105,7 +109,7 @@ createDeployment dep = do
                                                     , "volumes" .= deploymentVolumes ns (foldContainerVolumes cs)
                                                     ]]]
 
-        foldContainerVolumes cs = concat $ map (\(Container _ _ vs) -> map (\(Volume n _) -> n) vs) cs
+        foldContainerVolumes cs = concat $ map (\(Container _ _ vs _ _) -> map (\(Volume n _) -> n) vs) cs
 
         deploymentVolumes ns vs = map (\v -> object [ "name" .= v
                                                     , if take 9 v == "empty-dir"
@@ -113,9 +117,13 @@ createDeployment dep = do
                                                         else ("hostPath" .= object ["path" .= (volumeRoot </> ns </> v)])
                                                     ]) (nub vs)
 
-        deploymentContainers cs = map (\(Container n i vs) -> object [ "name" .= n
-                                                                     , "image" .= i
-                                                                     , "volumeMounts" .= containerVolumes vs]) cs
+        deploymentContainers cs =
+            map (\(Container n i vs cm ags) -> object [ "name" .= n
+                                                      , "image" .= i
+                                                      , "volumeMounts" .= containerVolumes vs
+                                                      , "command" .= cm
+                                                      , "args" .= ags
+                                                      ]) cs
 
         containerVolumes vs = map(\(Volume n m) -> object ["name" .= n, "mountPath" .= m]) vs
 

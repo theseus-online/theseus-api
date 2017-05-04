@@ -32,6 +32,8 @@ data Container = Container
                { name :: String
                , image :: String
                , volumes :: [Volume]
+               , command :: Maybe String
+               , args :: Maybe [String]
                } deriving (Show, Generic)
 
 instance ToJSON Container
@@ -76,13 +78,14 @@ instance ToJSON ContainerStatus where
 fromKubeDeployment :: KD.Deployment -> Deployment
 fromKubeDeployment (KD.Deployment nm ns rp cs) = Deployment nm ns rp (map fromKubeContainer cs) Nothing
     where
-        fromKubeContainer (KD.Container nm im vs) = Container nm im (map fromKubeVolume vs)
+        fromKubeContainer (KD.Container nm im vs cm ags) =
+            Container nm im (map fromKubeVolume vs) (cm >>= \(c:[]) -> Just c) ags
         fromKubeVolume (KD.Volume nm mp) = Volume nm mp
 
 toKubeDeployment :: Deployment -> KD.Deployment
 toKubeDeployment (Deployment nm ns rp cs _) = KD.Deployment nm ns rp $ map toKubeContainer cs
     where
-        toKubeContainer (Container nm im vs) = KD.Container nm im $ map toKubeVolume vs
+        toKubeContainer (Container nm im vs cm ags) = KD.Container nm im (map toKubeVolume vs) (cm >>= \c -> Just [c]) ags
         toKubeVolume (Volume nm mp) = KD.Volume nm mp
 
 fromKubePod :: KP.Pod -> Pod
