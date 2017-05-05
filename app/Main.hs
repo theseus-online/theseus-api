@@ -11,7 +11,7 @@ import Handler.Services (ServicesAPI, servicesServer)
 import Handler.Ingresses (IngressesAPI, ingressesServer)
 import Handler.Volumes (VolumesAPI, volumesServer)
 import Network.Wai.Handler.Warp (setHost, setPort, runSettings, defaultSettings)
-import Servant (Application, Server(..), Proxy(Proxy), serve, (:<|>)((:<|>)))
+import Servant (Application, Server, Proxy(Proxy), serve, (:<|>)((:<|>)))
 
 type TheseusAPI = MyselfAPI
              :<|> UsersAPI

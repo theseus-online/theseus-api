@@ -15,6 +15,7 @@ module Model.Deployments
 import GHC.Generics (Generic)
 import qualified Kubernetes.Deployments as KD
 import qualified Kubernetes.Pods as KP
+import qualified Kubernetes.NetworkPolicies as KN
 import Data.Aeson (ToJSON(..), FromJSON, object, (.=))
 
 data Deployment = Deployment
@@ -114,7 +115,11 @@ getDeploymentsOf :: String -> IO (Either String [Deployment])
 getDeploymentsOf username = readDeploymentList (KD.getDeploymentsOf username) (KP.getPodsOf username)
 
 createDeployment :: Deployment -> IO (Either String ())
-createDeployment dep = KD.createDeployment $ toKubeDeployment dep
+createDeployment dep = do
+    KN.createNetworkPolicy (owner dep) (name (dep :: Deployment))
+    KD.createDeployment $ toKubeDeployment dep
 
 deleteDeployment :: String -> String -> IO (Either String ())
-deleteDeployment = KD.deleteDeployment
+deleteDeployment username name = do
+    KN.deleteNetworkPolicy username name
+    KD.deleteDeployment username name

@@ -1,5 +1,6 @@
 module Model.Settings
-    ( users
+    ( db
+    , users
     , userinfoOf
     , volumeRoot
     ) where

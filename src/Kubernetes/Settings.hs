@@ -12,6 +12,9 @@ module Kubernetes.Settings
     , ingresses
     , ingressOf
     , ingressesOf
+    , namespaces
+    , networkPolicyOf
+    , networkPoliciesOf
     , volumeRoot
     ) where
 
@@ -59,6 +62,15 @@ ingressesOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/ingres
 
 ingressOf :: String -> String -> String
 ingressOf namespace name = ingressesOf namespace ++ "/" ++ name
+
+namespaces :: String
+namespaces = apiV1 ++ "/namespaces"
+
+networkPoliciesOf :: String -> String
+networkPoliciesOf namespace = apiExtensions ++ "/namespaces/" ++ namespace ++ "/networkpolicies"
+
+networkPolicyOf :: String -> String -> String
+networkPolicyOf namespace name = networkPoliciesOf namespace ++ "/" ++ name
 
 volumeRoot :: FilePath
 volumeRoot = "/theseus-volume"
