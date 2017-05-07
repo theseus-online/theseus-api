@@ -32,7 +32,8 @@ import Servant ( Get
                , (:<|>)((:<|>))
                )
 
-type IngressesAPI = "users" :> Capture "username" String
+type IngressesAPI = "ingresses" :> Get '[JSON] [M.Ingress]
+               :<|> "users" :> Capture "username" String
                             :> "ingresses"
                             :> Get '[JSON] [M.Ingress]
                :<|> "users" :> Header "x-theseus-username" String
@@ -48,11 +49,17 @@ type IngressesAPI = "users" :> Capture "username" String
 
 ingressesServer :: Server IngressesAPI
 ingressesServer = getIngresses
+             :<|> getIngressesOf
              :<|> createIngress
              :<|> deleteIngress
 
-getIngresses :: String -> ExceptT ServantErr IO [M.Ingress]
-getIngresses username =
+getIngresses :: ExceptT ServantErr IO [M.Ingress]
+getIngresses = (liftIO M.getIngresses) >>= \case
+        Right ings -> return ings
+        Left err -> throwError $ err500 { errBody = L.pack err }
+
+getIngressesOf :: String -> ExceptT ServantErr IO [M.Ingress]
+getIngressesOf username =
     (liftIO $ M.getIngressesOf username) >>= \case
         Right ings -> return ings
         Left err -> throwError $ err500 { errBody = L.pack err }
