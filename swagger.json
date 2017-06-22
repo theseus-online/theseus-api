@@ -1,0 +1,859 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the document for theseuse API",
+    "version": "1.0.0",
+    "title": "Theseus API",
+    "contact": {
+      "email": "gnu.crazier@gmail.com"
+    }
+  },
+  "host": "theseus.online",
+  "basePath": "/proxy",
+  "schemes": [
+    "https"
+  ],
+  "tags": [
+    {
+      "name": "users",
+      "description": "User information."
+    },
+    {
+      "name": "deployments",
+      "description": "Deployment is the core concept of theseus, by which user can upload Docker image to the platform."
+    },
+    {
+      "name": "services",
+      "description": "Service is used for service discovery and load balancing."
+    },
+    {
+      "name": "ingresses",
+      "description": "Ingress is used for mapping domain to a specified service, which makes it possible to access the service from the internet."
+    },
+    {
+      "name": "volumes",
+      "description": "Volume is used for keeping persistent data in Docker containers."
+    }
+  ],
+  "paths": {
+    "/myself": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Get information of current user",
+        "description": "This interface is used for checking the identity of the user.\nIf the user has not logged in yet, 403 will be returned.\n",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "403": {
+            "description": "User not login yet"
+          }
+        }
+      }
+    },
+    "/users/{username}/deployments": {
+      "get": {
+        "tags": [
+          "deployments"
+        ],
+        "summary": "Get deployment list of the user {username}",
+        "description": "Get deployment list of the target user. 403 will be returned if the user has no authority to access this resource.\n",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "target user to get deployments of",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/DeploymentList"
+            }
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "deployments"
+        ],
+        "summary": "Create a new deployment",
+        "description": "Create a new deployment with target account.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of new created deployment",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "deployment",
+            "in": "body",
+            "description": "deployment will be created",
+            "schema": {
+              "$ref": "#/definitions/Deployment"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/users/{username}/deployments/{deployment-name}": {
+      "put": {
+        "tags": [
+          "deployments"
+        ],
+        "summary": "Update a created deployment",
+        "description": "Update an existing deployment to a new state.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of target deployment",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "deployment-name",
+            "in": "path",
+            "description": "the name of target deployment",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "deployment",
+            "in": "body",
+            "description": "New deployment content",
+            "schema": {
+              "$ref": "#/definitions/Deployment"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "deployments"
+        ],
+        "summary": "Delete a deployment",
+        "description": "Delete an existing deployment and remove it's containers.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of target deployment",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "deployment-name",
+            "in": "path",
+            "description": "the name of target deployment",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/users/{username}/services": {
+      "get": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Get service list of target user",
+        "description": "Get service list of target user. 403 will be returned if the user has no authority to access this resource.\n",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "target user to get ingresses of",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/ServiceList"
+            }
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Create a new service",
+        "description": "This action will create a new service resource which will create a new DNS name with the service name.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of created service",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "service",
+            "in": "body",
+            "description": "service content",
+            "schema": {
+              "$ref": "#/definitions/Service"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/users/{username}/services/{service-name}": {
+      "put": {
+        "tags": [
+          "services"
+        ],
+        "summary": "update an existing service.",
+        "description": "Update an existing service.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the service",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "service-name",
+            "in": "path",
+            "description": "the name of target service",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "service",
+            "in": "body",
+            "description": "service content",
+            "schema": {
+              "$ref": "#/definitions/Service"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "services"
+        ],
+        "summary": "Delete an existing service",
+        "description": "Delete an existing service",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the service",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "service-name",
+            "in": "path",
+            "description": "the name of target service",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/users/{username}/ingresses": {
+      "get": {
+        "tags": [
+          "ingresses"
+        ],
+        "summary": "Get ingress list of target user",
+        "description": "Access ingress list of target user. If the user has no authority to access this resource, 403 will be returned.\n",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the name of target user",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/IngressList"
+            }
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ingresses"
+        ],
+        "summary": "Create a new ingress",
+        "description": "This action will map a specified domain to a service, which allows the service be accessible from the internet.\n",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of created ingress",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ingress",
+            "in": "body",
+            "description": "ingress content",
+            "schema": {
+              "$ref": "#/definitions/Ingress"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/users/{username}/ingresses/{ingress-name}": {
+      "put": {
+        "tags": [
+          "ingresses"
+        ],
+        "summary": "Update an ingress",
+        "description": "Update an existing ingress. If no authority, 403 will be returned.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the ingress",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ingress-name",
+            "in": "path",
+            "description": "the name of the ingress",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ingress",
+            "in": "body",
+            "description": "content of the ingress",
+            "schema": {
+              "$ref": "#/definitions/Ingress"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ingresses"
+        ],
+        "summary": "Delete an ingress",
+        "description": "Delete target ingress. If no authority, 403 will be returned.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the ingress",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "ingress-name",
+            "in": "path",
+            "description": "the name of the ingress",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      }
+    },
+    "/users/{username}/volumes": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Get volume list of specified user",
+        "description": "Fetch volume list of specified user.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the volumes",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/VolumeList"
+            }
+          },
+          "403": {
+            "description": "No authority"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Create new volume",
+        "description": "Create new volume",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the volume",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "volume",
+            "in": "body",
+            "description": "new ingress content",
+            "schema": {
+              "$ref": "#/definitions/Volume"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/users/{username}/volumes/{volume-name}": {
+      "get": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Get volume content",
+        "description": "Get the contents of a specified volume, the file tree will be returned.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the volume",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "volume-name",
+            "in": "path",
+            "description": "the name of the volume",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "schema": {
+              "$ref": "#/definitions/FileTreeNode"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "volumes"
+        ],
+        "summary": "Delete volume",
+        "description": "Delete an existing volume",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "description": "the owner of the volume",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "volume-name",
+            "in": "path",
+            "description": "the name of the volume",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "User": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "avatar"
+      ],
+      "example": {
+        "name": "lucklove",
+        "email": "gnu.crazier@gmail.com",
+        "avatar": "https://avatars3.githubusercontent.com/u/8718109?v=3"
+      }
+    },
+    "Deployment": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "replicas": {
+          "type": "integer"
+        },
+        "containers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Container"
+          }
+        }
+      },
+      "example": {
+        "name": "deployment-with-nginx",
+        "owner": "lucklove",
+        "replicas": 1,
+        "containers": [
+          {
+            "name": "container-4c1ddfbe-f310-465f-8a97-3e8af7c32db2",
+            "image": "nginx",
+            "volumes": []
+          }
+        ]
+      }
+    },
+    "DeploymentList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Deployment"
+      },
+      "example": [
+        {
+          "name": "deployment-with-nginx",
+          "owner": "lucklove",
+          "containers": [
+            {
+              "name": "container-4c1ddfbe-f310-465f-8a97-3e8af7c32db2",
+              "image": "nginx"
+            }
+          ]
+        }
+      ]
+    },
+    "Container": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/VolumeMount"
+          }
+        },
+        "command": {
+          "type": "string"
+        },
+        "args": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "image"
+      ],
+      "example": {
+        "name": "container-4c1ddfbe-f310-465f-8a97-3e8af7c32db2",
+        "image": "nginx"
+      }
+    },
+    "ServiceList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Service"
+      }
+    },
+    "Service": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "backend": {
+          "type": "string"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Port"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "owner",
+        "backend",
+        "ports"
+      ],
+      "example": {
+        "name": "test-service",
+        "owner": "lucklove",
+        "backend": "test-deployment",
+        "ports": [
+          {
+            "name": "test-port",
+            "protocol": "TCP",
+            "port": 80,
+            "targetPort": 8080
+          }
+        ]
+      }
+    },
+    "Port": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string",
+          "enum": [
+            "TCP",
+            "UDP"
+          ]
+        },
+        "port": {
+          "type": "integer"
+        },
+        "targetPort": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "protocol",
+        "port",
+        "targetPort"
+      ],
+      "example": {
+        "name": "test-port",
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": 8080
+      }
+    },
+    "Ingress": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "secure": {
+          "type": "boolean"
+        },
+        "serviceName": {
+          "type": "string"
+        },
+        "servicePort": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "owner",
+        "host",
+        "secure",
+        "serviceName",
+        "servicePort"
+      ],
+      "example": {
+        "name": "test-ingress",
+        "owner": "lucklove",
+        "host": "test-ingress.theseus.online",
+        "secure": false,
+        "serviceName": "test-service",
+        "servicePort": 80
+      }
+    },
+    "IngressList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Ingress"
+      }
+    },
+    "Volume": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        }
+      },
+      "example": {
+        "name": "test-volume",
+        "owner": "lucklove"
+      }
+    },
+    "VolumeList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Volume"
+      }
+    },
+    "VolumeMount": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "mountPath": {
+          "type": "string"
+        }
+      }
+    },
+    "FileTreeNode": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "file",
+            "folder"
+          ]
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FileTreeNode"
+          }
+        }
+      },
+      "example": {
+        "name": "/",
+        "type": "folder",
+        "children": [
+          {
+            "name": "sub-dir",
+            "type": "folder",
+            "children": []
+          },
+          {
+            "name": "test-file",
+            "type": "file"
+          }
+        ]
+      }
+    }
+  }
+}

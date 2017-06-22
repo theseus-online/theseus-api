@@ -4,6 +4,7 @@
 module Main (main) where
 
 import Data.String (fromString)
+import Handler.Swagger (SwaggerAPI, swaggerServer)
 import Handler.Myself (MyselfAPI, myselfServer)
 import Handler.Users (UsersAPI, usersServer)
 import Handler.Deployments (DeploymentsAPI, deploymentsServer)
@@ -13,7 +14,8 @@ import Handler.Volumes (VolumesAPI, volumesServer)
 import Network.Wai.Handler.Warp (setHost, setPort, runSettings, defaultSettings)
 import Servant (Application, Server, Proxy(Proxy), serve, (:<|>)((:<|>)))
 
-type TheseusAPI = MyselfAPI
+type TheseusAPI = SwaggerAPI
+             :<|> MyselfAPI
              :<|> UsersAPI
              :<|> DeploymentsAPI
              :<|> ServicesAPI
@@ -21,7 +23,8 @@ type TheseusAPI = MyselfAPI
              :<|> VolumesAPI
 
 server :: Server TheseusAPI
-server = myselfServer
+server = swaggerServer
+    :<|> myselfServer
     :<|> usersServer
     :<|> deploymentsServer
     :<|> servicesServer

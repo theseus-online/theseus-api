@@ -23,6 +23,7 @@ library
                      , Model.Volumes
                      , Model.Logs
                      , Handler.Users
+                     , Handler.Swagger
                      , Handler.Myself
                      , Handler.Deployments
                      , Handler.Services
@@ -52,6 +53,7 @@ library
                      , servant-server
                      , http-types
                      , cryptohash
+                     , file-embed
 
 executable theseus-api-exe
   hs-source-dirs:      app
